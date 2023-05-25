@@ -94,6 +94,8 @@ def GetGangNam():
                 region="기타"
             try:
                 imageUrl=liTag.find('img',attrs={'class':'thumb_img'})['src']
+                if imageUrl.find("https")<0:
+                    imageUrl="https:"+imageUrl
             except:
                 imageUrl=""
             regex=re.compile("id=\d+")
@@ -370,32 +372,36 @@ def SaveFirebaseDB(totalList):
         "universe_domain": "googleapis.com",
     })
     firebase_admin.initialize_app(cred, {
-        'databaseURL': 'https://experience-gen-default-rtdb.asia-southeast1.firebasedatabase.app//'
+        'databaseURL': 'https://experience-gen-default-rtdb.asia-southeast1.firebasedatabase.app//',
+        'storageBucket': 'experience-gen.appspot.com',
         # 'databaseURL' : '데이터 베이스 url'
     })
     db = firebase_admin.db
     ref = db.reference()  # db 위치 지정, 기본 가장 상단을 가르킴
     ref.update({"data": totalList})
     print("저장완료")
-def SaveFirebaseStorage(fileName,firstFlag):
-    if firstFlag==True:
-        cred = credentials.Certificate({
-            "type": "service_account",
-            "project_id": "experience-gen",
-            "private_key_id": "6a967ec5eea30528f569dea9a04f3d136a6375cd",
-            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC5gcn0Igb0HlUH\nF3af6eFWdJmynoUxJUVfBloJ/UUCWn4zLQUuUfd8r04L/wTYrV4CKcORJfl85T2/\nxSupVctXpg0Bzu4vDOB7eUEE7F68TSZVRKCMnimOft2QMlwljPbkG65dCJEMKRXL\nLb68oQ8Ko8epWkf5dWpnsrugajvRHriaoMXv6e8gVrZTCM4ShoJTqRZhot+u1goL\n8kRZuiS4nugZ/ezzWLVYMMaUYFavOkVvWcFvv4hmyu8FnmXGNi0hkGGWh8iLv7KH\n1keSdvcZVDk/mhqMKsz8e3gZazF1ovYYvdIOni8bdwB9YHJZo41pangWEXMglI8S\nZZ46IFf9AgMBAAECggEAEXvFWDhUxhvjEPYJ0hcti65q8JthcOOoXsUEe2iJYSgS\nONSHZnmHL73TR0IpEhrU1LNcS95zsxe6nXZXH8XcPPiDb/uGwJx1aRhhI7ZQqhfu\nAvSi2l3rC2kIN2zno7UIwoWcBgdRVFS9nxaX9sM0iGDYkoIrF7xp441u2Dbq8vx0\nbUAdj5mJEVvaOAtzr55EARxPEqL6zUttoHRzJ4pnTUKuVsJ69sibqua0pmwCurlF\n3PWNgnRs4PVX1NS4vs49WzMT6eb2eNp8+XuYeedDPItW/pfAf+y/rhVMsIHLlFBa\nkRzdxPTsTJM311TWgaiWiclp9Rld63FtVtAbBHzz6QKBgQDm/Mvs7DF5EfmhjP+D\ngNHaK6F+tsYE/XwYS0uDPncWbJ7CurRGQdB4XAd4odIHg7AVNmqSuwNDz3AH4dsG\nyGGQ3j3yq0rSYsUOWycVt6JSPZvyNuRDJxUiHWYbiFerpEe1kg9SMoMQXtsMsDFI\nR7VsBff1p3/efJcrMfHL1NClpwKBgQDNmDo/O6CrwtaCOUVJ//Rxzf7MWRK65+mr\naMEhX3ITiHUm1QtMuvHE+hLU4Ka+E9wsJqq4qqchXBr1v8ylHFJhIOdRSR5/MG1f\nLnTsRf51HsGNjQDsqAmqF0WLoU2ZZ0/b+MsBbaL7+GUPaNslRPJZi+agANjMZMwl\nq3OpwPbRuwKBgBAKSAL41+qnY+VjDC9Ol8QFuZ46BQA9tgtd1y2S/eQRwOiW3IPw\neBCTm3U2D4a0D1s5vybXU7+2vPnfJj2PVq8fr7+VQ4nej/6SN+GbMetyGc01IJ7F\nLQOEdR2+VxA1RUGHlgbIOS++1olIBvQU/rU0qOZnLkr97eVy/25/JcoLAoGALA6f\nDMXeXHBYP3e+XWk4HNsj6u57kQn5jP3ZxSkK7Ryk3jlxPnQhMzDTsEKj+L+QwvVW\nSFRplECEln0PgaJcFOxUJZshqefayDbQX4FwUfDRUWAR/qTTzVtHT/C1DFaTSnQ6\nLIguEQjdvzudGpN3y7CrL0Z/Lu26wafIFWyAd9kCgYBZTUrlgNmX0KEG0lwW+Gp4\nDRDrv5wwObfySKkez/g6Gm3IfUpBJuSyDZoAuTka4IKU4jybKWE16/qIpQth5u1Z\n9i4TzKDXODLgD//I1kDEl6H98fD2LPGjyIcQzAtsl9qVkjBRBZn/6KkKRkd8esZ9\n9vMIa4yP+R5BdznCBprR6A==\n-----END PRIVATE KEY-----\n",
-            "client_email": "firebase-adminsdk-56cwd@experience-gen.iam.gserviceaccount.com",
-            "client_id": "112011830418533229556",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-56cwd%40experience-gen.iam.gserviceaccount.com",
-            "universe_domain": "googleapis.com",
-        })
+def InitFirebaseStorage():
+    cred = credentials.Certificate({
+        "type": "service_account",
+        "project_id": "experience-gen",
+        "private_key_id": "6a967ec5eea30528f569dea9a04f3d136a6375cd",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC5gcn0Igb0HlUH\nF3af6eFWdJmynoUxJUVfBloJ/UUCWn4zLQUuUfd8r04L/wTYrV4CKcORJfl85T2/\nxSupVctXpg0Bzu4vDOB7eUEE7F68TSZVRKCMnimOft2QMlwljPbkG65dCJEMKRXL\nLb68oQ8Ko8epWkf5dWpnsrugajvRHriaoMXv6e8gVrZTCM4ShoJTqRZhot+u1goL\n8kRZuiS4nugZ/ezzWLVYMMaUYFavOkVvWcFvv4hmyu8FnmXGNi0hkGGWh8iLv7KH\n1keSdvcZVDk/mhqMKsz8e3gZazF1ovYYvdIOni8bdwB9YHJZo41pangWEXMglI8S\nZZ46IFf9AgMBAAECggEAEXvFWDhUxhvjEPYJ0hcti65q8JthcOOoXsUEe2iJYSgS\nONSHZnmHL73TR0IpEhrU1LNcS95zsxe6nXZXH8XcPPiDb/uGwJx1aRhhI7ZQqhfu\nAvSi2l3rC2kIN2zno7UIwoWcBgdRVFS9nxaX9sM0iGDYkoIrF7xp441u2Dbq8vx0\nbUAdj5mJEVvaOAtzr55EARxPEqL6zUttoHRzJ4pnTUKuVsJ69sibqua0pmwCurlF\n3PWNgnRs4PVX1NS4vs49WzMT6eb2eNp8+XuYeedDPItW/pfAf+y/rhVMsIHLlFBa\nkRzdxPTsTJM311TWgaiWiclp9Rld63FtVtAbBHzz6QKBgQDm/Mvs7DF5EfmhjP+D\ngNHaK6F+tsYE/XwYS0uDPncWbJ7CurRGQdB4XAd4odIHg7AVNmqSuwNDz3AH4dsG\nyGGQ3j3yq0rSYsUOWycVt6JSPZvyNuRDJxUiHWYbiFerpEe1kg9SMoMQXtsMsDFI\nR7VsBff1p3/efJcrMfHL1NClpwKBgQDNmDo/O6CrwtaCOUVJ//Rxzf7MWRK65+mr\naMEhX3ITiHUm1QtMuvHE+hLU4Ka+E9wsJqq4qqchXBr1v8ylHFJhIOdRSR5/MG1f\nLnTsRf51HsGNjQDsqAmqF0WLoU2ZZ0/b+MsBbaL7+GUPaNslRPJZi+agANjMZMwl\nq3OpwPbRuwKBgBAKSAL41+qnY+VjDC9Ol8QFuZ46BQA9tgtd1y2S/eQRwOiW3IPw\neBCTm3U2D4a0D1s5vybXU7+2vPnfJj2PVq8fr7+VQ4nej/6SN+GbMetyGc01IJ7F\nLQOEdR2+VxA1RUGHlgbIOS++1olIBvQU/rU0qOZnLkr97eVy/25/JcoLAoGALA6f\nDMXeXHBYP3e+XWk4HNsj6u57kQn5jP3ZxSkK7Ryk3jlxPnQhMzDTsEKj+L+QwvVW\nSFRplECEln0PgaJcFOxUJZshqefayDbQX4FwUfDRUWAR/qTTzVtHT/C1DFaTSnQ6\nLIguEQjdvzudGpN3y7CrL0Z/Lu26wafIFWyAd9kCgYBZTUrlgNmX0KEG0lwW+Gp4\nDRDrv5wwObfySKkez/g6Gm3IfUpBJuSyDZoAuTka4IKU4jybKWE16/qIpQth5u1Z\n9i4TzKDXODLgD//I1kDEl6H98fD2LPGjyIcQzAtsl9qVkjBRBZn/6KkKRkd8esZ9\n9vMIa4yP+R5BdznCBprR6A==\n-----END PRIVATE KEY-----\n",
+        "client_email": "firebase-adminsdk-56cwd@experience-gen.iam.gserviceaccount.com",
+        "client_id": "112011830418533229556",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-56cwd%40experience-gen.iam.gserviceaccount.com",
+        "universe_domain": "googleapis.com",
+    })
 
-        firebase_admin.initialize_app(cred, {
-            'storageBucket': 'experience-gen.appspot.com'
-        })
+    firebase_admin.initialize_app(cred, {
+        'storageBucket': 'experience-gen.appspot.com'
+    })
+    return firebase_admin
+def SaveFirebaseStorage(fileName,firstFlag):
+    # if firstFlag==True:
+
 
     # Put your local file path
 
@@ -415,14 +421,6 @@ def SaveFirebaseStorage(fileName,firstFlag):
     #
     #
     bucket = storage.bucket()
-
-    bucketList=storage.bucket().list_blobs()
-
-    for bucketElem in bucketList:
-        print('filename:',filename)
-        print(str(bucketElem))
-
-
     blob = bucket.blob(fileName)
     blob.upload_from_filename(fileName)
     blob.make_public()
@@ -430,42 +428,71 @@ def SaveFirebaseStorage(fileName,firstFlag):
 
 
 
-# dataList1=GetGangNam() #강남맛집 검색
-# dataList2=GetNolowa() #놀러와 검색
-# dataList3=GetDinnerQueen() #디너의여왕 검색
-# dataList4=GetDailyView() #데일리뷰 검색
-#
-# totalList=dataList1+dataList2+dataList3+dataList4 # 검색결과를 모두 합친다.
-# SaveFirebaseDB(totalList)
-#
-# with open('totalList.json', 'w') as f:
-# 	json.dump(totalList, f, indent=2)
+
+
+dataList1=GetGangNam() #강남맛집 검색
+dataList2=GetNolowa() #놀러와 검색
+dataList3=GetDinnerQueen() #디너의여왕 검색
+dataList4=GetDailyView() #데일리뷰 검색
+
+totalList=dataList1+dataList2+dataList3+dataList4 # 검색결과를 모두 합친다.
+SaveFirebaseDB(totalList)
+
+with open('totalList.json', 'w') as f:
+	json.dump(totalList, f, indent=2)
 
 
 # =================JSON파일 읽어와서 올리기
 with open ('totalList.json', "r") as f:
     totalList = json.load(f)
 
+print("글갯수:",len(totalList))
 
-# print(totalList)
 firstFlag=True
 for index,totalElem in enumerate(totalList):
     # if index<=4635:
     #     continue
+    filename = "{}.png".format(totalElem['myImage'])
+    print("{}번째 파일".format(index),filename)
+
+    if firstFlag == True:
+        # InitFirebaseStorage() #테스트에서만 켬
+        bucketList = storage.bucket().list_blobs()
+        preGetList = []
+        for bucketElem in bucketList:
+            # print('filename:',filename)
+            # print(str(bucketElem))
+            data = str(bucketElem)
+            preGetList.append(data)
+        # print('preGetList:', preGetList)
+        # print("그림갯수:", len(preGetList))
+        firstFlag = False
+    # print('filename:', filename)
+    skip_flag = False
+    for preGetElem in preGetList:
+        if preGetElem.find(filename) >= 0:
+            print("그림이미있음".format(filename))
+
+            skip_flag = True
+            break
+    if skip_flag == True:
+        continue
+
+
     try:
         headers={"User-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"}
         imageUrl=totalElem['imageUrl']
         if imageUrl.find("no_img")>=0 or len(imageUrl)==0:
-            break
+            continue
         print('{}번째 imageUrl:'.format(index),imageUrl)
         image_res = requests.get(imageUrl, headers=headers)  # 그림파일 저장
         image_res.raise_for_status()
-        filename="{}.png".format(totalElem['myImage'])
-        print(filename)
+
         with open(filename, "wb") as f:
             f.write(image_res.content)  # 그림파일 각각 저장
+        print("파이어베이스저장시작")
         SaveFirebaseStorage(filename,firstFlag)
-        firstFlag=False
+
         time.sleep(random.randint(8, 10) * 0.1)
 
     except:
