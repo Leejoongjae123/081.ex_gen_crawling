@@ -103,6 +103,7 @@ def GetGangNam():
             dataList.append(data)
         print("총갯수:",len(dataList))
     return dataList
+
 def GetNolowa():
     dataList=[]
     page=1
