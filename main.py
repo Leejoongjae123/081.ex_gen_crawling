@@ -60,6 +60,7 @@ from google.analytics.data_v1beta.types import Dimension
 from google.analytics.data_v1beta.types import Metric
 from google.analytics.data_v1beta.types import RunReportRequest
 from google.analytics.data_v1beta.types import OrderBy
+import pprint
 
 
 def GetGangNam():
@@ -708,7 +709,7 @@ def GetGaBoJa():
             # print(imageUrl)
             url='http://xn--o39a04kpnjo4k9hgflp.com'+result['href']
             regex=re.compile("\d+")
-            myIndex=regex.findall(url)[0]
+            myIndex=regex.findall(url)[-1]
             try:
                 endDate=result['ca_edate']
                 print(endDate)
@@ -1142,8 +1143,271 @@ def format_report(request,client):
     output = pd.DataFrame(data=np.transpose(np.array(data_values, dtype='f')),
                           index=row_index_named, columns=metric_names)
     return output
+#-----------REV230714 사이트4개 추가-----------------
+def calculate_remaining_days(target_date_str):
+    target_date = datetime.datetime.fromisoformat(target_date_str[:-1])
+    current_date = datetime.datetime.now()
+    remaining_days = (target_date - current_date).days
 
+    return remaining_days
+def GetReviewPlace():
 
+    dataList=[]
+    categorys=['제품','지역']
+    for category in categorys:
+        count = 0
+        while True:
+            cookies = {
+                'PHPSESSID': 'clgj4atiom9e19agkj8nj51pdi',
+                '_gcl_au': '1.1.25152803.1689058359',
+                '_fbp': 'fb.2.1689058359432.428743364',
+                '_gid': 'GA1.3.533737594.1689058360',
+                'e1192aefb64683cc97abb83c71057733': 'cHJvZHVjdA%3D%3D',
+                '_gat_UA-213777995-1': '1',
+                'wcs_bt': 's_502a9426297b:1689058717',
+                '_ga_4XZ5KL34H1': 'GS1.1.1689058359.1.1.1689058717.0.0.0',
+                '_ga': 'GA1.1.123397818.1689058360',
+            }
+
+            headers = {
+                'authority': 'www.reviewplace.co.kr',
+                'accept': 'text/html, */*; q=0.01',
+                'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+                # 'cookie': 'PHPSESSID=clgj4atiom9e19agkj8nj51pdi; _gcl_au=1.1.25152803.1689058359; _fbp=fb.2.1689058359432.428743364; _gid=GA1.3.533737594.1689058360; e1192aefb64683cc97abb83c71057733=cHJvZHVjdA%3D%3D; _gat_UA-213777995-1=1; wcs_bt=s_502a9426297b:1689058717; _ga_4XZ5KL34H1=GS1.1.1689058359.1.1.1689058717.0.0.0; _ga=GA1.1.123397818.1689058360',
+                'if-modified-since': 'Tue, 11 Jul 2023 06:58:23 GMT',
+                'referer': 'https://www.reviewplace.co.kr/pr/?ct1=%EC%A0%9C%ED%92%88',
+                'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+                'x-requested-with': 'XMLHttpRequest',
+            }
+
+            params = {
+                'ct1': str(category),
+                'device': 'pc',
+                'rpage': str(count),
+            }
+
+            response = requests.get(
+                'https://www.reviewplace.co.kr/theme/rp/_ajax_cmp_list_tpl.php',
+                params=params,
+                cookies=cookies,
+                headers=headers,
+            )
+
+            soup=BeautifulSoup(response.text,'lxml')
+            # print(soup.prettify())
+
+            items=soup.find_all('div',attrs={'class':'item'})
+            print("갯수는:",len(items))
+            if len(items)==0:
+                break
+            for item in items:
+                title=item.find('p',attrs={'class':'tit'}).get_text()
+                # print('title:',title)
+                region=""
+                try:
+                    dday=item.find('p',attrs={'class':'date'}).get_text()
+                    regex=re.compile("\d+")
+                    dday=regex.findall(dday)[0]
+                except:
+                    dday='0'
+                applyDemandCount=item.find('div',attrs={'class':'num'}).get_text()
+                applyCount=regex.findall(applyDemandCount)[0]
+                demandCount = regex.findall(applyDemandCount)[1]
+                imageUrl=item.find('img')['src']
+                url='https://www.reviewplace.co.kr'+item.find('a')['href']
+                myIndex=regex.findall(url)[-1]
+
+                data = {'platform': '리뷰플레이스', 'region': region, 'dday': dday, 'title': title, 'applyCount': applyCount,
+                        'demandCount': demandCount, 'imageUrl': imageUrl, 'url': url, 'myImage': "리뷰플레이스_" + myIndex}
+                print(data)
+                dataList.append(data)
+            print(category,"/","갯수는:",len(dataList))
+            count+=1
+            time.sleep(random.randint(5,10)*0.1)
+    return dataList
+def GetChvu():
+    dataList=[]
+    cookies = {
+        'wcs_bt': '7477ac737b2058:1689062251',
+        '_ga': 'GA1.1.883970942.1689062252',
+        '_ga_7EX0VJYMCT': 'GS1.1.1689062251.1.1.1689062298.0.0.0',
+    }
+
+    headers = {
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Connection': 'keep-alive',
+        # 'Cookie': 'wcs_bt=7477ac737b2058:1689062251; _ga=GA1.1.883970942.1689062252; _ga_7EX0VJYMCT=GS1.1.1689062251.1.1.1689062298.0.0.0',
+        'Referer': 'https://chvu.co.kr/campaign',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+    }
+
+    response = requests.get(
+        'https://chvu.co.kr/api/campaign/getCampaignByCondition?limitNumber=2000&startIndex=0&conditions=%7B%22channel%22:%7B%22all%22:true,%22insta%22:false,%22blog%22:false,%22youtube%22:false,%22misc%22:false%7D,%22activity%22:%7B%22all%22:false,%22visit%22:true,%22delivery%22:true,%22report%22:false,%22misc%22:false,%22purchase%22:false%7D,%22locations%22:[],%22service%22:%7B%22all%22:true,%22travel%22:false,%22hotplaces%22:false,%22beauty%22:false,%22fashion%22:false,%22food%22:false,%22life%22:false,%22parenting%22:false,%22misc%22:false%7D,%22point%22:%7B%22all%22:true,%22firstBracket%22:false,%22secondBracket%22:false,%22thirdBracket%22:false,%22fourthBracket%22:false,%22fifthBracket%22:false%7D%7D&searchString=&sortCondition=deadline',
+        cookies=cookies,
+        headers=headers,
+    )
+    results=json.loads(response.text)
+    # pprint.pprint(results)
+    for index,result in enumerate(results):
+        # print(result)
+        title=result['title']
+        region=""
+        dday=str(calculate_remaining_days(result['appl_end_date'])+2)
+        applyCount=result['current_applicants']
+        demandCount=result['reviewer_limit']
+        imageUrl="https://chvu.co.kr/"+result['main_img']
+        url='https://chvu.co.kr/campaign/'+str(result['campaign_id'])
+        myIndex=str(result['campaign_id'])
+
+        if float(dday)<0:
+            break
+
+        data = {'platform': '체험뷰', 'region': region, 'dday': dday, 'title': title, 'applyCount': applyCount,
+                'demandCount': demandCount, 'imageUrl': imageUrl, 'url': url, 'myImage': "체험뷰_" + myIndex}
+        print(data)
+        dataList.append(data)
+    print("데이타갯수:",len(dataList))
+    return dataList
+def GetReviewNote():
+    count=0
+    dataList = []
+    endFlag=False
+    while True:
+        cookies = {
+            '_ga': 'GA1.1.1718250559.1689065399',
+            '_ga_XZVSWF43K1': 'GS1.1.1689070637.2.1.1689071017.0.0.0',
+            'token': '',
+        }
+
+        headers = {
+            'authority': 'www.reviewnote.co.kr',
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+            # 'cookie': '_ga=GA1.1.1718250559.1689065399; _ga_XZVSWF43K1=GS1.1.1689070637.2.1.1689071017.0.0.0; token=',
+            'if-none-match': 'W/"z84jmrjd6l4ia"',
+            'referer': 'https://www.reviewnote.co.kr/campaigns?channel=&sort=&categoryId=&category=&location=&pointInterval=&s=%7B%22applyEndAt%22%3A%22asc%22%7D&coord=&isPremium=',
+            'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        }
+
+        response = requests.get(
+            'https://www.reviewnote.co.kr/api/campaigns?channel=&sort=&category=&categoryId=&sidoSelected=&gugunSelected=&pointInterval=0%7C1000000&q=&s=%7B%22applyEndAt%22:%22asc%22%7D&coord=&isPremium=&limit=16&page={}&activeOnly=true'.format(count),
+            cookies=cookies,
+            headers=headers,
+        )
+
+        results=json.loads(response.text)['objects']
+        # pprint.pprint(results)
+        if len(results)==0:
+            break
+        for result in results:
+            # pprint.pprint(result)
+            title=result['title']
+            region=""
+            dday=calculate_remaining_days(result['applyEndAt'])+1
+            if dday<0:
+                endFlag=True
+                break
+            applyCount=result['_count']['applies']
+            demandCount=result['infNum']
+            imageKey=result['imageKey']
+            if imageKey==None:
+                imageUrl=""
+            else:
+                imageUrl='https://www.reviewnote.co.kr/_next/image?url=https%3A%2F%2Ffirebasestorage.googleapis.com%2Fv0%2Fb%2Freviewnote-e92d9.appspot.com%2Fo%2Fitems%252F{}%3Falt%3Dmedia&w=1080&q=75'.format(result['imageKey'].replace("items/",""))
+
+            url='https://www.reviewnote.co.kr/campaigns/{}'.format(str(result['id']))
+            myIndex=str(result['id'])
+            data = {'platform': '리뷰노트', 'region': region, 'dday': dday, 'title': title, 'applyCount': applyCount,
+                    'demandCount': demandCount, 'imageUrl': imageUrl, 'url': url, 'myImage': "리뷰노트_" + myIndex}
+            print(data)
+            dataList.append(data)
+
+        time.sleep(random.randint(5,10)*0.1)
+        print("갯수는:",len(dataList))
+        if endFlag==True:
+            break
+        count+=1
+    return dataList
+def GetCloudView():
+
+    dataList=[]
+    categorys=['https://www.cloudreview.co.kr/campaign/delivery','https://www.cloudreview.co.kr/campaign/exp','https://www.cloudreview.co.kr/campaign/review','https://www.cloudreview.co.kr/campaign/shopping']
+    for category in categorys:
+        cookies = {
+            'sessions': 'e65857a0c695575b1585a1c4eea80eb4c0151d2e',
+            '_gid': 'GA1.3.1393034719.1689074042',
+            '_gat_gtag_UA_130885233_1': '1',
+            '_ga_Y4WT55P82W': 'GS1.1.1689074041.1.1.1689074168.0.0.0',
+            '_ga_175K0Y868Z': 'GS1.1.1689074042.1.1.1689074169.0.0.0',
+            '_ga': 'GA1.3.2096767969.1689074041',
+        }
+
+        headers = {
+            'authority': 'www.cloudreview.co.kr',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept-language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+            # 'cookie': 'sessions=e65857a0c695575b1585a1c4eea80eb4c0151d2e; _gid=GA1.3.1393034719.1689074042; _gat_gtag_UA_130885233_1=1; _ga_Y4WT55P82W=GS1.1.1689074041.1.1.1689074168.0.0.0; _ga_175K0Y868Z=GS1.1.1689074042.1.1.1689074169.0.0.0; _ga=GA1.3.2096767969.1689074041',
+            'referer': 'https://www.cloudreview.co.kr/campaign/delivery',
+            'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        }
+
+        response = requests.get(category, cookies=cookies, headers=headers)
+        soup=BeautifulSoup(response.text,'lxml')
+        itemAll=soup.find_all('div',attrs={'class':'col-xl-1 col-lg-3 col-md-4 col-sm-6 col-6'})
+        # print("상품갯수:",len(itemAll))
+        for item in itemAll:
+
+            title=item.find('div',attrs={'class':'card-title'}).get_text().strip()
+            region=""
+            dday=item.find('span',attrs={'class':'card-text-right'}).get_text().strip()
+            regex=re.compile("\d+")
+            try:
+                dday=regex.findall(dday)[0]
+            except:
+                dday="0"
+            applyDemandCount=item.find('small',attrs={'class':'text-muted people-count-text'}).get_text()
+            applyCount=regex.findall(applyDemandCount)[0]
+            demandCount=regex.findall(applyDemandCount)[1]
+            imageUrl='https://www.cloudreview.co.kr'+item.find('a').find('img')['data-original']
+
+            url='https://www.cloudreview.co.kr'+item.find('a')['href']
+            myIndex=item.find('a')['href'].split("/")[-1]
+            data = {'platform': '클라우드리뷰', 'region': region, 'dday': dday, 'title': title, 'applyCount': applyCount,
+                    'demandCount': demandCount, 'imageUrl': imageUrl, 'url': url, 'myImage': "클라우드리뷰_" + myIndex}
+            print(data)
+            dataList.append(data)
+        print("========================================")
+        print("상품수:",len(dataList))
+    return dataList
+
+#------------------------------------------------
 class Thread(QThread):
     cnt = 0
     user_signal = pyqtSignal(str)  # 사용자 정의 시그널 2 생성
@@ -1168,171 +1432,177 @@ class Thread(QThread):
 
             timeNow=datetime.datetime.now().timestamp()
             timeNowString = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            try:
+                if timeNow-timePrev>=60*self.timeCycle:
 
-            if timeNow-timePrev>=60*self.timeCycle:
+                    # ---------------GA4 결과 가져오기
+                    print("ga4 조회중")
+                    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'credential.json'
+                    property_id = '378226211'
+                    client = BetaAnalyticsDataClient()
+                    start_date=datetime.datetime.now()-datetime.timedelta(days=5)
+                    start_date_string=start_date.strftime("%Y-%m-%d")
+                    request = RunReportRequest(
+                        property='properties/' + property_id,
+                        dimensions=[Dimension(name="day")],
+                        metrics=[Metric(name="activeUsers")],
+                        order_bys=[OrderBy(dimension={'dimension_name': 'day'})],
+                        date_ranges=[DateRange(start_date=start_date_string, end_date="today")],
+                    )
+                    # print(request)
+                    print("request완료")
+                    output_df = format_report(request,client)
+                    print(output_df)
+                    visitorsList = output_df['activeUsers'].tolist()
+                    newData=[]
+                    if len(visitorsList)==6:
+                        dateConstant=5
+                    else:
+                        dateConstant=4
+                    for index,visitorsElem in enumerate(visitorsList):
+                        targetTime=datetime.datetime.now() - datetime.timedelta(days=(dateConstant-index))
+                        targetTimeString=targetTime.strftime("%m/%d")
+                        data={'name':targetTimeString,'visitors':visitorsElem}
+                        newData.append(data)
+                    print(newData)
+                    SaveFirebaseVisitors(newData)
 
-                # ---------------GA4 결과 가져오기
-                print("ga4 조회중")
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'credential.json'
-                property_id = '378226211'
-                client = BetaAnalyticsDataClient()
-                start_date=datetime.datetime.now()-datetime.timedelta(days=5)
-                start_date_string=start_date.strftime("%Y-%m-%d")
-                request = RunReportRequest(
-                    property='properties/' + property_id,
-                    dimensions=[Dimension(name="day")],
-                    metrics=[Metric(name="activeUsers")],
-                    order_bys=[OrderBy(dimension={'dimension_name': 'day'})],
-                    date_ranges=[DateRange(start_date=start_date_string, end_date="today")],
-                )
-                # print(request)
-                print("request완료")
-                output_df = format_report(request,client)
-                print(output_df)
-                visitorsList = output_df['activeUsers'].tolist()
-                newData=[]
-                if len(visitorsList)==6:
-                    dateConstant=5
-                else:
-                    dateConstant=4
-                for index,visitorsElem in enumerate(visitorsList):
-                    targetTime=datetime.datetime.now() - datetime.timedelta(days=(dateConstant-index))
-                    targetTimeString=targetTime.strftime("%m/%d")
-                    data={'name':targetTimeString,'visitors':visitorsElem}
-                    newData.append(data)
-                print(newData)
-                SaveFirebaseVisitors(newData)
+                    #-----------------------------------------
 
-                #-----------------------------------------
-
-                timePrev=datetime.datetime.now().timestamp()
-                text="크롤링 시작 / {}".format(timeNowString)
-                self.user_signal.emit(text)
-                dataList1 = GetGangNam()  # 강남맛집 검색
-                text = "강남맛집 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-
-                dataList2 = GetNolowa()  # 놀러와 검색
-                text = "놀러와체험단 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-                dataList3 = GetDinnerQueen()  # 디너의여왕 검색
-                text = "디너의여왕 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-                dataList4 = GetDailyView()  # 데일리뷰 검색
-                text = "데일리뷰 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-
-                #===============6월21일 사이트5개 추가Start
-
-                dataList5=GetGaBoJa()
-                text = "가보자체험단 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-
-                dataList6=GetMrBlog()
-                text = "미스터블로그 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-
-                dataList7=GetOhMyBlog()
-                text = "오마이블로그 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-
-                dataList8=GetSeoulObba()
-                text = "서울오빠 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-
-                dataList9=GetRevu()
-                text = "레뷰 크롤링 완료"
-                print(text)
-                self.user_signal.emit(text)
-
-                #===============6월21일 사이트5개 추가End
+                    timePrev=datetime.datetime.now().timestamp()
+                    text="크롤링 시작 / {}".format(timeNowString)
+                    self.user_signal.emit(text)
 
 
-                totalList = dataList1 + dataList2 + dataList3 + dataList4+dataList5+dataList6+dataList7+dataList8+dataList9  # 검색결과를 모두 합친다.
+                    dataList1 = GetGangNam()  # 강남맛집 검색
+                    text = "강남맛집 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    dataList2 = GetNolowa()  # 놀러와 검색
+                    text = "놀러와체험단 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    dataList3 = GetDinnerQueen()  # 디너의여왕 검색
+                    text = "디너의여왕 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    dataList4 = GetDailyView()  # 데일리뷰 검색
+                    text = "데일리뷰 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    #===============6월21일 사이트5개 추가Start
+
+                    dataList5=GetGaBoJa()
+                    text = "가보자체험단 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    dataList6=GetMrBlog()
+                    text = "미스터블로그 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    dataList7=GetOhMyBlog()
+                    text = "오마이블로그 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    dataList8=GetSeoulObba()
+                    text = "서울오빠 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    dataList9=GetRevu()
+                    text = "레뷰 크롤링 완료"
+                    print(text)
+                    self.user_signal.emit(text)
+
+                    #===============6월21일 사이트5개 추가End
 
 
-                with open('totalList.json', 'w') as f:
-                    json.dump(totalList, f, indent=2)
+                    totalList = dataList1 + dataList2 + dataList3 + dataList4+dataList5+dataList6+dataList7+dataList8+dataList9  # 검색결과를 모두 합친다.
+                    # totalList = dataList5+dataList6+dataList7+dataList8+dataList9
 
-                # =================JSON파일 읽어와서 올리기
-                with open('totalList.json', "r") as f:
-                    totalList = json.load(f)
+                    with open('totalList.json', 'w') as f:
+                        json.dump(totalList, f, indent=2)
 
-                text = "전체 글 갯수:{}".format(len(totalList))
-                print(text)
-                self.user_signal.emit(text)
-                firstFlag = True
-                text = "그림 파일 저장중"
-                print(text)
-                self.user_signal.emit(text)
-                for index, totalElem in enumerate(totalList):
-                    # if index<=4635:
-                    #     continue
-                    filename = "{}.png".format(totalElem['myImage'])
-                    print("{}번째 파일".format(index), filename)
+                    # =================JSON파일 읽어와서 올리기
+                    with open('totalList.json', "r") as f:
+                        totalList = json.load(f)
 
-                    if firstFlag == True:
-                        # InitFirebaseStorage() #테스트에서만 켬
-                        bucketList = storage.bucket().list_blobs()
-                        preGetList = []
-                        for bucketElem in bucketList:
-                            # print('filename:',filename)
-                            # print(str(bucketElem))
-                            data = str(bucketElem)
-                            preGetList.append(data)
-                        # print('preGetList:', preGetList)
-                        # print("그림갯수:", len(preGetList))
-                        firstFlag = False
-                    # print('filename:', filename)
-                    skip_flag = False
-                    for preGetElem in preGetList:
-                        if preGetElem.find(filename) >= 0:
-                            print("그림이미있음".format(filename))
+                    text = "전체 글 갯수:{}".format(len(totalList))
+                    print(text)
+                    self.user_signal.emit(text)
+                    firstFlag = True
+                    text = "그림 파일 저장중"
+                    print(text)
+                    self.user_signal.emit(text)
+                    for index, totalElem in enumerate(totalList):
+                        # if index<=4635:
+                        #     continue
+                        filename = "{}.png".format(totalElem['myImage'])
+                        print("{}번째 파일".format(index), filename)
 
-                            skip_flag = True
-                            break
-                    if skip_flag == True:
-                        continue
-
-                    try:
-                        headers = {
-                            "User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"}
-                        imageUrl = totalElem['imageUrl']
-                        if imageUrl.find("no_img") >= 0 or len(imageUrl) == 0:
+                        if firstFlag == True:
+                            # InitFirebaseStorage() #테스트에서만 켬
+                            bucketList = storage.bucket().list_blobs()
+                            preGetList = []
+                            for bucketElem in bucketList:
+                                # print('filename:',filename)
+                                # print(str(bucketElem))
+                                data = str(bucketElem)
+                                preGetList.append(data)
+                            # print('preGetList:', preGetList)
+                            # print("그림갯수:", len(preGetList))
+                            firstFlag = False
+                        # print('filename:', filename)
+                        skip_flag = False
+                        for preGetElem in preGetList:
+                            if preGetElem.find(filename) >= 0:
+                                print("그림이미있음".format(filename))
+                                skip_flag = True
+                                break
+                        if skip_flag == True:
                             continue
-                        print('{}번째 imageUrl:'.format(index), imageUrl)
-                        image_res = requests.get(imageUrl, headers=headers)  # 그림파일 저장
-                        image_res.raise_for_status()
 
-                        with open(filename, "wb") as f:
-                            f.write(image_res.content)  # 그림파일 각각 저장
-                        text = "그림파일 저장중..."
-                        print(text)
-                        SaveFirebaseStorage(filename, firstFlag)
-                        time.sleep(random.randint(8, 10) * 0.1)
+                        try:
+                            headers = {
+                                "User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"}
+                            imageUrl = totalElem['imageUrl']
+                            if imageUrl.find("no_img") >= 0 or len(imageUrl) == 0:
+                                continue
+                            print('{}번째 imageUrl:'.format(index), imageUrl)
+                            image_res = requests.get(imageUrl, headers=headers)  # 그림파일 저장
+                            image_res.raise_for_status()
 
-                    except:
-                        print("에러로건너뜀")
-                        time.sleep(3)
+                            with open(filename, "wb") as f:
+                                f.write(image_res.content)  # 그림파일 각각 저장
+                            text = "그림파일 저장중..."
+                            print(text)
+                            SaveFirebaseStorage(filename, firstFlag)
+                            time.sleep(random.randint(8, 10) * 0.1)
 
-                    print("=====================================")
-                SaveFirebaseDB(totalList)
-                text = "그림 파일 저장 완료"
-                print(text)
-                self.user_signal.emit(text)
+                        except:
+                            print("에러로건너뜀")
+                            time.sleep(3)
+
+                        print("=====================================")
+                    SaveFirebaseDB(totalList)
+                    text = "그림 파일 저장 완료"
+                    print(text)
+                    self.user_signal.emit(text)
 
 
-            else:
-                text="대기중..."
-                self.user_signal.emit(text)
+                else:
+                    text="대기중..."
+                    self.user_signal.emit(text)
+            except:
+                print("에러로 한텀쉬기")
+                time.sleep(60*10)
             time.sleep(10)
     def stop(self):
         pass
